@@ -1,159 +1,168 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
-import { Dialog, DialogPanel } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon } from '@heroicons/react/24/outline'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 
 const navigation = [
   { name: 'Beranda', href: './' },
   { name: 'Cari Kerja', href: './jobs' },
 ]
 
-export default function Example() {
+export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <div className="bg-gray-900">
-      <header className="absolute inset-x-0 top-0 z-50">
+    <div className="bg-gray-900 min-h-screen text-white selection:bg-indigo-500/30 relative overflow-hidden">
+      
+      <header className="absolute inset-x-0 top-0 z-50 animate-in fade-in slide-in-from-top-4 duration-700">
         <nav aria-label="Global" className="flex items-center justify-between p-6 lg:px-8">
           <div className="flex lg:flex-1">
-            <a href="#" className="-m-1.5 p-1.5">
+            <Link href="/" className="-m-1.5 p-1.5 transition-transform active:scale-95">
               <span className="sr-only">Your Company</span>
               <img
-                alt=""
+                alt="Logo"
                 src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
                 className="h-8 w-auto"
               />
-            </a>
+            </Link>
           </div>
+          
+          <div className="hidden lg:flex lg:gap-x-12 lg:ml-8">
+            {navigation.map((item) => (
+              <a key={item.name} href={item.href} className="text-sm font-semibold text-white transition hover:text-indigo-400">
+                {item.name}
+              </a>
+            ))}
+          </div>
+          
+          <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+            <Link
+              href="./login"
+              className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition duration-300 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-500/40 active:scale-95"
+            >
+              Masuk
+            </Link>
+          </div>
+          
           <div className="flex lg:hidden">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-200"
+              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-white active:scale-95 transition-transform"
             >
               <span className="sr-only">Open main menu</span>
               <Bars3Icon aria-hidden="true" className="size-6" />
             </button>
           </div>
-          <div className="hidden lg:flex lg:gap-x-12 lg:ml-8">
-            {navigation.map((item) => (
-              <a key={item.name} href={item.href} className="text-sm/6 font-semibold text-white">
-                {item.name}
-              </a>
-            ))}
-          </div>
-          <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-            <a href="./login" className="text-sm font-semibold text-white rounded-md bg-indigo-500 px-4 py-2 shadow-lg shadow-indigo-500/20 hover:bg-indigo-400">
-              Masuk
-            </a>
-          </div>
         </nav>
-        <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
-          <div className="fixed inset-0 z-50" />
-          <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-gray-900 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
-            <div className="flex items-center justify-between">
-              <a href="#" className="-m-1.5 p-1.5">
+
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="right" className="w-full border-l border-white/10 bg-gray-900 p-6 sm:max-w-sm">
+            <SheetHeader className="text-left mb-6">
+              <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
+              <Link href="/" className="-m-1.5 p-1.5 inline-block">
                 <span className="sr-only">Your Company</span>
                 <img
-                  alt=""
+                  alt="Logo"
                   src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
                   className="h-8 w-auto"
                 />
-              </a>
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="-m-2.5 rounded-md p-2.5 text-gray-200"
-              >
-                <span className="sr-only">Close menu</span>
-                <XMarkIcon aria-hidden="true" className="size-6" />
-              </button>
-            </div>
+              </Link>
+            </SheetHeader>
             <div className="mt-6 flow-root">
               <div className="-my-6 divide-y divide-white/10">
                 <div className="space-y-2 py-6">
                   {navigation.map((item) => (
-                    <a
+                    <Link
                       key={item.name}
                       href={item.href}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-white hover:bg-white/5"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-white transition-colors hover:bg-white/5 active:bg-white/10"
                     >
                       {item.name}
-                    </a>
+                    </Link>
                   ))}
                 </div>
                 <div className="py-6">
-                  <a
-                    href="#"
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white hover:bg-white/5"
+                  <Link
+                    href="./login"
+                    className="-mx-3 block rounded-md bg-indigo-500 px-3 py-2.5 text-center text-base font-semibold text-white shadow-md transition duration-300 hover:bg-indigo-600 active:scale-[0.98]"
                   >
-                    Masuk 
-                  </a>
+                    Masuk
+                  </Link>
                 </div>
               </div>
             </div>
-          </DialogPanel>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       </header>
 
-      <div className="relative isolate px-6 pt-14 lg:px-8">
+      <main className="relative isolate px-6 pt-14 lg:px-8">
+        {/* Top Polygon Restored */}
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+          className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80 pointer-events-none"
         >
           <div
             style={{
               clipPath:
                 'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
             }}
-            className="relative center-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-[#828081] to-[#5c5c5d] opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75"
+            className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#828081] to-[#5c5c5d] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem] animate-in fade-in duration-1000"
           />
         </div>
-        <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-5">
-          <div className="hidden sm:mb-8 sm:flex sm:justify-center">
-            <div className="relative rounded-full px-3 py-1 text-sm/6 text-gray-400 ring-1 ring-white/10 hover:ring-white/20">
+        
+        <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
+          <div className="hidden sm:mb-8 sm:flex sm:justify-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-both">
+            <div className="relative rounded-full px-3 py-1 text-sm/6 text-gray-400 ring-1 ring-white/10 hover:ring-white/20 transition-all cursor-default">
               lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.{' '}
-              <a href="#" className="font-semibold text-indigo-400">
-                <span aria-hidden="true" className="absolute inset-0" />
+              <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300 ml-1 transition-colors">
+                <span className="absolute inset-0" aria-hidden="true" />
                 Read more <span aria-hidden="true">&rarr;</span>
               </a>
             </div>
           </div>
+          
           <div className="text-center">
-            <h1 className="text-5xl font-semibold tracking-tight text-balance text-white sm:text-7xl ">
-              Temukan Karier <span className="text-transparent bg-clip-text w-3/4 bg-linear-to-tr from-indigo-500 via-indigo-500 to-pink-500">Impian</span> atau Bakat <span className="text-transparent bg-clip-text w-3/4 bg-linear-to-tr from-indigo-500 to-pink-500">Terbaik</span>
+            <h1 className="text-5xl font-semibold tracking-tight text-balance text-white sm:text-7xl animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both">
+              Temukan Karier <span className="text-transparent bg-clip-text bg-gradient-to-tr from-indigo-500 to-pink-500">Impian</span> atau Bakat <span className="text-transparent bg-clip-text bg-gradient-to-tr from-indigo-500 to-pink-500">Terbaik</span>
               <span className="mt-2 block text-white">Anda</span>
             </h1>
-            <p className="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8">
+            <p className="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 fill-mode-both">
               lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
             </p>
-            <div className="mt-10 flex items-center justify-center gap-x-6">
-              <a
+            <div className="mt-10 flex items-center justify-center gap-x-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-700 fill-mode-both">
+              <Link
                 href="./jobs"
-                className="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                className="rounded-md bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition duration-300 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-500/40 active:scale-95"
               >
                 Mulai Cari Kerja
-              </a>
-              {/* <a href="#" className="text-sm/6 font-semibold text-white">
-                Learn more <span aria-hidden="true">→</span>
-              </a> */}
+              </Link>
             </div>
           </div>
         </div>
+        
+        {/* Bottom Polygon Restored */}
         <div
           aria-hidden="true"
-          className="absolute  top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
+          className="absolute top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)] pointer-events-none"
         >
           <div
             style={{
               clipPath:
                 'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
             }}
-            className="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-[#9a9a9a] to-[#878788] opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75"
+            className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#9a9a9a] to-[#878788] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem] animate-in fade-in duration-1000 delay-500"
           />
         </div>
-      </div>
+      </main>
     </div>
   )
 }

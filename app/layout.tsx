@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
+import { cn } from "@/lib/utils";
+
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,9 +30,23 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Toaster
+          theme="dark"
+          richColors
+          toastOptions={{
+            style: {
+              background: "#111827",
+              color: "#f8fafc",
+              border: "1px solid rgba(148,163,184,0.2)",
+              boxShadow: "0 15px 35px rgba(0,0,0,0.35)",
+            },
+          }}
+        />
+      </body>
     </html>
   );
 }
