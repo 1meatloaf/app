@@ -180,14 +180,14 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-8 text-center text-sm text-gray-400">
+            {/* <div className="mt-8 text-center text-sm text-gray-400">
               <p>
                 Belum punya akun?{' '}
                 <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
                   Daftar di sini
                 </a>
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </main>

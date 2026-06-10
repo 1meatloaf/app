@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -14,31 +14,39 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 
+const JOBS_STORAGE_KEY = 'slate-jobs'
+
 const navigation = [
   { name: 'Beranda', href: '/' },
   { name: 'Cari Kerja', href: '/jobs' },
 ]
 
-const jobs = [
+const defaultJobs = [
   {
     title: 'Frontend Developer',
     company: 'Slate Motors',
+    division: 'Slate Motors',
     salary: 'Rp 12.000.000 - Rp 18.000.000',
     description: 'Bekerja pada tim produk untuk mengembangkan fitur frontend menggunakan React dan Next.js.',
+    requirements: 'Usia maksimal 30 tahun. Memiliki pengalaman React minimal 2 tahun. Terbuka untuk semua gender.',
     image: '/images/car-01.png',
   },
   {
     title: 'Backend Engineer',
     company: 'Slate Automotive',
+    division: 'Slate Automotive',
     salary: 'Rp 14.000.000 - Rp 20.000.000',
     description: 'Bangun API handal dengan Node.js, Express, dan database skala besar.',
+    requirements: 'Usia 25-35 tahun, siap bekerja remote dan fleksibel. Diutamakan laki-laki untuk kebutuhan proyek lapangan.',
     image: '/images/car-02.png',
   },
   {
     title: 'Product Designer',
     company: 'Slate Creative',
+    division: 'Slate Creative',
     salary: 'Rp 10.000.000 - Rp 15.000.000',
     description: 'Rancang antarmuka yang menarik dan intuitif untuk pengalaman pengguna terbaik.',
+    requirements: 'Minimal gelar D3 atau S1 desain. Memiliki portofolio UI/UX. Prioritas untuk semua gender.',
     image: '/images/car-03.png',
   },
 ]
@@ -47,6 +55,7 @@ export default function Example() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const [applyOpen, setApplyOpen] = useState(false)
+  const [jobs, setJobs] = useState(defaultJobs)
   
   // Form State
   const [applicantName, setApplicantName] = useState('')
@@ -56,6 +65,20 @@ export default function Example() {
   const [applicantLastEducation, setApplicantLastEducation] = useState("Bachelor's Degree")
   const [driveTab, setDriveTab] = useState<'upload' | 'drive'>('drive')
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+
+  useEffect(() => {
+    const stored = localStorage.getItem(JOBS_STORAGE_KEY)
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setJobs(parsed)
+        }
+      } catch (error) {
+        console.warn('Unable to load stored jobs:', error)
+      }
+    }
+  }, [])
   
   const prevSlide = () => setActiveIndex((current) => (current === 0 ? jobs.length - 1 : current - 1))
   const nextSlide = () => setActiveIndex((current) => (current === jobs.length - 1 ? 0 : current + 1))
@@ -247,7 +270,7 @@ export default function Example() {
                 </div>
                 <div className="mt-6 flex items-center justify-between gap-3 text-sm text-slate-300">
                   <span className="rounded-full bg-white/10 px-4 py-2 font-medium text-white transition-all duration-300">
-                    {jobs[activeIndex].company}
+                    {jobs[activeIndex].company ?? jobs[activeIndex].division}
                   </span>
                   <button
                     type="button"
@@ -270,9 +293,20 @@ export default function Example() {
           <SheetHeader className="text-left">
             <SheetTitle className="text-xl font-semibold text-white">Apply for {jobs[activeIndex].title}</SheetTitle>
             <SheetDescription className="text-slate-400">
-              Isi formulir ini untuk melamar posisi di <span className="text-white font-medium">{jobs[activeIndex].company}</span>.
+              Isi formulir ini untuk melamar posisi di <span className="text-white font-medium">{jobs[activeIndex].company ?? jobs[activeIndex].division}</span>.
             </SheetDescription>
           </SheetHeader>
+
+          {jobs[activeIndex].requirements && (
+            <div className="mb-6 rounded-3xl border border-indigo-500/20 bg-indigo-500/10 p-4 text-sm text-slate-100">
+              <p className="font-semibold text-white">Persyaratan Posisi</p>
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-300">
+                {jobs[activeIndex].requirements.split(/\r?\n|\.|;|\u2022/).map((item) => item.trim()).filter(Boolean).map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <form
             className="mt-8 space-y-6"
@@ -495,6 +529,7 @@ export default function Example() {
             >
               Submit Application
             </button>
+
           </form>
         </SheetContent>
       </Sheet>

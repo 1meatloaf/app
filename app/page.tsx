@@ -120,7 +120,7 @@ export default function LandingPage() {
         </div>
         
         <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
-          <div className="hidden sm:mb-8 sm:flex sm:justify-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-both">
+          {/* <div className="hidden sm:mb-8 sm:flex sm:justify-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-both">
             <div className="relative rounded-full px-3 py-1 text-sm/6 text-gray-400 ring-1 ring-white/10 hover:ring-white/20 transition-all cursor-default">
               lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.{' '}
               <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300 ml-1 transition-colors">
@@ -128,12 +128,12 @@ export default function LandingPage() {
                 Read more <span aria-hidden="true">&rarr;</span>
               </a>
             </div>
-          </div>
+          </div> */}
           
           <div className="text-center">
             <h1 className="text-5xl font-semibold tracking-tight text-balance text-white sm:text-7xl animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both">
-              Temukan Karier <span className="text-transparent bg-clip-text bg-gradient-to-tr from-indigo-500 to-pink-500">Impian</span> atau Bakat <span className="text-transparent bg-clip-text bg-gradient-to-tr from-indigo-500 to-pink-500">Terbaik</span>
-              <span className="mt-2 block text-white">Anda</span>
+               <span className="text-transparent bg-clip-text bg-gradient-to-tr from-indigo-500 to-pink-500">Temukan Karier Impian atau Bakat</span>  <span className="text-transparent bg-clip-text bg-gradient-to-tr from-indigo-500 to-pink-500">Terbaik Anda</span>
+              <span className="mt-2 block text-white"></span>
             </h1>
             <p className="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 fill-mode-both">
               lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
