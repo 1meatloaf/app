@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import { Bars3Icon } from '@heroicons/react/24/outline'
 import {
   Sheet,
@@ -16,14 +17,40 @@ const navigation = [
 ]
 
 export default function LoginPage() {
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    console.log('Login', { email, password })
+
+    try {
+      const response = await fetch('http://localhost:9000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      })
+
+      let data;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Username atau password salah')
+      }
+
+      localStorage.setItem('token', data.token)
+      alert(data?.message || 'Login Berhasil!')
+      router.push('/admin')
+    } catch (err: any) {
+      alert(err?.message || 'Terjadi kesalahan saat login')
+    }
   }
 
   return (
@@ -95,7 +122,6 @@ export default function LoginPage() {
       </header>
 
       <main className="relative isolate flex flex-1 items-center justify-center px-6 py-24 sm:px-10 lg:px-12">
-        {/* Original Radial Gradient Restored */}
         <div
           className="absolute inset-0 -z-10 pointer-events-none animate-in fade-in duration-1000"
           style={{
@@ -120,11 +146,11 @@ export default function LoginPage() {
               
               <div className="relative">
                 <input
-                  type="email"
+                  type="text"
                   id="email"
-                  name="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  name="username"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
                   className="peer h-12 w-full rounded-xl bg-gray-900/50 border border-white/10 px-4 text-white placeholder-transparent focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
                   placeholder="Email"
                   required

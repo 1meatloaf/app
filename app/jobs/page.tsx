@@ -1,70 +1,90 @@
 ﻿'use client'
 
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import axios from 'axios'
 import { Bars3Icon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
-
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+import { useToast } from '@/hooks/use-toast'
 
 const navigation = [
   { name: 'Beranda', href: '/' },
   { name: 'Cari Kerja', href: '/jobs' },
 ]
 
-const jobs = [
-  {
-    title: 'Frontend Developer',
-    company: 'Slate Motors',
-    salary: 'Rp 12.000.000 - Rp 18.000.000',
-    description: 'Bekerja pada tim produk untuk mengembangkan fitur frontend menggunakan React dan Next.js.',
-    image: '/images/car-01.png',
-  },
-  {
-    title: 'Backend Engineer',
-    company: 'Slate Automotive',
-    salary: 'Rp 14.000.000 - Rp 20.000.000',
-    description: 'Bangun API handal dengan Node.js, Express, dan database skala besar.',
-    image: '/images/car-02.png',
-  },
-  {
-    title: 'Product Designer',
-    company: 'Slate Creative',
-    salary: 'Rp 10.000.000 - Rp 15.000.000',
-    description: 'Rancang antarmuka yang menarik dan intuitif untuk pengalaman pengguna terbaik.',
-    image: '/images/car-03.png',
-  },
-]
+const jobIds = [1, 2, 3]
+
+const BACKEND_URL = 'http://192.168.56.1:9000'
 
 export default function Example() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [jobData, setJobData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   const [applyOpen, setApplyOpen] = useState(false)
-  
-  // Form State
   const [applicantName, setApplicantName] = useState('')
   const [applicantEmail, setApplicantEmail] = useState('')
-  const [coverLetter, setCoverLetter] = useState('')
   const [applicantLocation, setApplicantLocation] = useState('')
-  const [applicantLastEducation, setApplicantLastEducation] = useState("Bachelor's Degree")
-  const [driveTab, setDriveTab] = useState<'upload' | 'drive'>('drive')
+  const [applicantLastEducation, setApplicantLastEducation] = useState('Gelar Sarjana')
+  const [driveTab, setDriveTab] = useState<'drive' | 'upload'>('drive')
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
-  
-  const prevSlide = () => setActiveIndex((current) => (current === 0 ? jobs.length - 1 : current - 1))
-  const nextSlide = () => setActiveIndex((current) => (current === jobs.length - 1 ? 0 : current + 1))
+  const [coverLetter, setCoverLetter] = useState('')
+
+  const { toast } = useToast()
+
+  useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const currentId = jobIds[activeIndex]
+        const response = await axios.get(`${BACKEND_URL}/lamaran/${currentId}`)
+        if (response.data.status === 'sukses') {
+          setJobData(response.data.data)
+        } else {
+          setError('Format data dari server tidak sesuai.')
+        }
+      } catch (err: any) {
+        console.error('Error detail:', err?.response?.status, err?.message, err)
+        setError(`Gagal: ${err?.message || 'Unknown error'}`)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchJob()
+  }, [activeIndex])
+
+  const prevSlide = () => setActiveIndex((current) => (current === 0 ? jobIds.length - 1 : current - 1))
+  const nextSlide = () => setActiveIndex((current) => (current === jobIds.length - 1 ? 0 : current + 1))
+
+  const formatRupiah = (angka: number) =>
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka)
+
+  const getImageSrc = (lokasi_gambar: string) =>
+    lokasi_gambar.startsWith('http') ? lokasi_gambar : `${BACKEND_URL}/${lokasi_gambar}`
+
+  const handleApplySubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    setApplyOpen(false)
+    setApplicantName('')
+    setApplicantEmail('')
+    setApplicantLocation('')
+    setApplicantLastEducation('Gelar Sarjana')
+    setDriveTab('drive')
+    setUploadedFiles([])
+    setCoverLetter('')
+    toast({
+      title: 'Lamaran Terkirim!',
+      description: `Lamaran Anda untuk posisi ${jobData?.header} telah dikirim. Kami akan segera menghubungi Anda.`,
+    })
+  }
 
   return (
-    <div className="bg-[#101010] text-white selection:bg-indigo-500/30 min-h-screen relative overflow-hidden">
-      
-      {/* Animated Header */}
-      <header className="absolute inset-x-0 top-0 z-50 animate-in fade-in slide-in-from-top-4 duration-700">
+    <div className="bg-gray-950 text-white">
+      <header className="absolute inset-x-0 top-0 z-50">
         <nav aria-label="Global" className="flex items-center justify-between p-6 lg:px-8">
           <div className="flex lg:flex-1">
             <Link href="/" className="-m-1.5 p-1.5 transition-transform active:scale-95">
@@ -76,7 +96,7 @@ export default function Example() {
               />
             </Link>
           </div>
-          
+
           <div className="hidden lg:flex lg:gap-x-12 lg:ml-8">
             {navigation.map((item) => (
               <Link key={item.name} href={item.href} className="text-sm font-semibold text-white transition hover:text-indigo-400">
@@ -93,7 +113,7 @@ export default function Example() {
               Masuk
             </Link>
           </div>
-          
+
           <div className="flex lg:hidden">
             <button
               type="button"
@@ -106,7 +126,6 @@ export default function Example() {
           </div>
         </nav>
 
-        {/* Mobile Navigation Sheet */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetContent side="right" className="w-full border-l border-white/10 bg-gray-950 p-6 sm:max-w-sm">
             <SheetHeader className="text-left mb-6">
@@ -136,7 +155,7 @@ export default function Example() {
                 </div>
                 <div className="py-6">
                   <Link
-                    href="./login"
+                    href="/login"
                     className="-mx-3 block rounded-md bg-indigo-500 px-3 py-2.5 text-center text-base font-semibold text-white shadow-md transition duration-300 hover:bg-indigo-600 active:scale-[0.98]"
                   >
                     Masuk
@@ -149,7 +168,6 @@ export default function Example() {
       </header>
 
       <main className="relative isolate px-6 pb-24 pt-28 sm:px-10 lg:px-12">
-        {/* Animated Background Gradients */}
         <div
           className="absolute inset-0 -z-10 animate-in fade-in duration-1000 pointer-events-none"
           style={{
@@ -160,7 +178,6 @@ export default function Example() {
 
         <div className="mx-auto max-w-7xl">
           <div className="mb-12 flex flex-col gap-6 text-center sm:mx-auto sm:max-w-2xl">
-            {/* Staggered Text Animations */}
             <p className="text-sm uppercase tracking-[0.3em] text-indigo-400 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-both">
               Early reservations are filling fast
             </p>
@@ -172,94 +189,97 @@ export default function Example() {
             </p>
           </div>
 
-          {/* Animated Job Slider Card */}
-          <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-black/30 transition-all duration-500 hover:border-white/20 hover:shadow-indigo-500/10 animate-in fade-in zoom-in-95 duration-700 delay-700 fill-mode-both">
-            <div className="absolute inset-0 bg-[url('/images/bg.png')] bg-cover bg-center opacity-20" />
-            <div className="relative grid gap-8 px-6 py-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-10 lg:py-12">
-              
-              <div className="space-y-6">
-                <div className="rounded-3xl border border-white/10 bg-slate-950/80 p-6 shadow-[0_25px_100px_-40px_rgba(0,0,0,0.75)] backdrop-blur-sm">
-                  <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <p className="text-sm uppercase tracking-[0.3em] text-indigo-400">Job slider</p>
-                      <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl transition-all duration-300">{jobs[activeIndex].title}</h2>
+          <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-black/30">
+            {loading ? (
+              <div className="flex h-96 items-center justify-center text-slate-400">Sedang menyinkronkan data lowongan...</div>
+            ) : error ? (
+              <div className="flex h-96 items-center justify-center text-red-400">{error}</div>
+            ) : jobData ? (
+              <div className="relative grid gap-8 px-6 py-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-10 lg:py-12">
+                <div className="space-y-6">
+                  <div className="rounded-3xl border border-white/10 bg-slate-950/80 p-6 shadow-[0_25px_100px_-40px_rgba(0,0,0,0.75)]">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.3em] text-indigo-400">{jobData.devisi}</p>
+                        <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">{jobData.header}</h2>
+                        <p className="mt-2 text-sm text-slate-400">Slate Corporation · Remote / On-site</p>
+                      </div>
+                      <div className="inline-flex items-center rounded-full bg-white/5 px-4 py-2 text-sm text-slate-200 ring-1 ring-white/10">
+                        {activeIndex + 1} / {jobIds.length}
+                      </div>
                     </div>
-                    <div className="inline-flex items-center rounded-full bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10">
-                      {activeIndex + 1} / {jobs.length}
+
+                    <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                      <div className="rounded-3xl bg-slate-900/90 p-5">
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Estimasi Gaji</p>
+                        <p className="mt-2 text-base font-semibold text-white">
+                          {formatRupiah(jobData.gaji_min)} - {formatRupiah(jobData.gaji_max)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="mt-8 max-w-2xl text-base leading-7 text-slate-300">{jobData.deskripsi}</p>
+                  </div>
+
+                  {/* NAVIGASI SLIDER */}
+                  <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
+                    <button
+                      type="button"
+                      onClick={prevSlide}
+                      className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-900/80 text-white transition hover:border-indigo-400 hover:text-indigo-400"
+                    >
+                      <ChevronLeftIcon className="h-6 w-6" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextSlide}
+                      className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-900/80 text-white transition hover:border-indigo-400 hover:text-indigo-400"
+                    >
+                      <ChevronRightIcon className="h-6 w-6" />
+                    </button>
+
+                    <div className="sm:col-span-1">
+                      <div className="flex items-center gap-3">
+                        {jobIds.map((id, index) => (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => setActiveIndex(index)}
+                            className={`h-3 w-3 rounded-full transition ${index === activeIndex ? 'bg-indigo-400' : 'bg-white/25 hover:bg-white/40'}`}
+                            aria-label={`Go to slide ${index + 1}`}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-3xl bg-slate-900/90 p-5 ring-1 ring-white/5 transition hover:ring-white/10">
-                      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Salary</p>
-                      <p className="mt-2 text-lg font-semibold text-white transition-all duration-300">{jobs[activeIndex].salary}</p>
-                    </div>
-                  </div>
-
-                  <p className="mt-8 max-w-2xl text-base leading-7 text-slate-300 transition-all duration-300">
-                    {jobs[activeIndex].description}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={prevSlide}
-                    className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-900/80 text-white transition-all hover:border-indigo-400 hover:text-indigo-400 active:scale-95"
-                  >
-                    <ChevronLeftIcon className="h-6 w-6" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={nextSlide}
-                    className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-900/80 text-white transition-all hover:border-indigo-400 hover:text-indigo-400 active:scale-95"
-                  >
-                    <ChevronRightIcon className="h-6 w-6" />
-                  </button>
-
-                  <div className="ml-4 flex items-center gap-3">
-                    {jobs.map((job, index) => (
-                      <button
-                        key={job.title}
-                        type="button"
-                        onClick={() => setActiveIndex(index)}
-                        className={`h-3 w-3 rounded-full transition-all duration-300 ${index === activeIndex ? 'bg-indigo-400 w-6' : 'bg-white/25 hover:bg-white/40'}`}
-                        aria-label={`Go to slide ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-5 backdrop-blur-sm flex flex-col justify-between">
-                <div className="relative h-80 overflow-hidden rounded-3xl bg-slate-900/90 group">
-                  {/* Note: Ensure the image path exists, otherwise use a placeholder */}
-                  <div className="absolute inset-0 bg-slate-800 flex items-center justify-center text-slate-500">
-                    Image Placeholder
-                  </div>
-                  <Image
-                    src={jobs[activeIndex].image}
-                    alt={jobs[activeIndex].title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105 z-10"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 z-20" />
-                </div>
-                <div className="mt-6 flex items-center justify-between gap-3 text-sm text-slate-300">
-                  <span className="rounded-full bg-white/10 px-4 py-2 font-medium text-white transition-all duration-300">
-                    {jobs[activeIndex].company}
-                  </span>
+                  {/* TOMBOL LAMAR */}
                   <button
                     type="button"
                     onClick={() => setApplyOpen(true)}
-                    className="rounded-md bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-500/40 active:scale-95"
+                    className="w-full rounded-xl bg-indigo-500 px-5 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.98]"
                   >
-                    Apply Now
+                    Lamar Sekarang
                   </button>
                 </div>
-              </div>
 
-            </div>
+                {/* SISI GAMBAR */}
+                <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-5">
+                  <div className="relative h-80 overflow-hidden rounded-3xl bg-slate-900/90">
+                    <Image
+                      src={getImageSrc(jobData.lokasi_gambar)}
+                      alt={jobData.header}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-300">
+                    <span className="rounded-full bg-white/5 px-3 py-2">{jobData.devisi}</span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </section>
         </div>
       </main>
@@ -268,44 +288,13 @@ export default function Example() {
       <Sheet open={applyOpen} onOpenChange={setApplyOpen}>
         <SheetContent side="right" className="w-full max-w-md overflow-y-auto border-l border-white/10 bg-slate-950 p-6 sm:max-w-md">
           <SheetHeader className="text-left">
-            <SheetTitle className="text-xl font-semibold text-white">Apply for {jobs[activeIndex].title}</SheetTitle>
+            <SheetTitle className="text-xl font-semibold text-white">Apply for {jobData?.header ?? ''}</SheetTitle>
             <SheetDescription className="text-slate-400">
-              Isi formulir ini untuk melamar posisi di <span className="text-white font-medium">{jobs[activeIndex].company}</span>.
+              Isi formulir ini untuk melamar posisi di <span className="text-white font-medium">Slate Corporation</span>.
             </SheetDescription>
           </SheetHeader>
 
-          <form
-            className="mt-8 space-y-6"
-            onSubmit={(event) => {
-              event.preventDefault()
-      
-              console.log('Apply submitted', {
-                job: jobs[activeIndex].title,
-                company: jobs[activeIndex].company,
-                applicantName,
-                applicantEmail,
-                applicantLocation,
-                applicantLastEducation,
-                coverLetter,
-                uploadedFiles: uploadedFiles.map((file) => file.name),
-              })
-      
-              setApplyOpen(false)
-      
-              setApplicantName('')
-              setApplicantEmail('')
-              setApplicantLocation('')
-              setApplicantLastEducation("Bachelor's Degree")
-              setDriveTab('drive')
-              setUploadedFiles([])
-              setCoverLetter('')
-    
-              toast.success("Application Submitted!", {
-                description: `Your application for ${jobs[activeIndex].title} at ${jobs[activeIndex].company} has been sent. We'll be in touch soon.`,
-                duration: 5000, 
-              })
-            }}
-          >
+          <form className="mt-8 space-y-6" onSubmit={handleApplySubmit}>
             <div className="relative">
               <input
                 id="apply-name"
@@ -351,7 +340,7 @@ export default function Example() {
                 type="text"
                 value={applicantLocation}
                 onChange={(event) => setApplicantLocation(event.target.value)}
-                placeholder="Location (city, address or coordinates)"
+                placeholder="Location"
                 className="peer w-full rounded-xl border border-white/10 bg-slate-900/50 px-4 py-3 text-white placeholder-transparent focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
                 required
               />
@@ -365,10 +354,7 @@ export default function Example() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (!navigator.geolocation) {
-                      alert('Geolocation not supported in this browser')
-                      return
-                    }
+                    if (!navigator.geolocation) { alert('Geolocation not supported'); return }
                     navigator.geolocation.getCurrentPosition(
                       (pos) => setApplicantLocation(`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`),
                       () => alert('Unable to retrieve your location')
@@ -382,10 +368,9 @@ export default function Example() {
                   type="button"
                   onClick={() => {
                     const parts = applicantLocation.split(/[,\s]+/).map(Number)
-                    const lat = parts.length >= 2 && !Number.isNaN(parts[0]) ? parts[0] : -6.200000 // default to Jakarta
+                    const lat = parts.length >= 2 && !Number.isNaN(parts[0]) ? parts[0] : -6.2
                     const lng = parts.length >= 2 && !Number.isNaN(parts[1]) ? parts[1] : 106.816666
-                    const url = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=12/${lat}/${lng}`
-                    window.open(url, '_blank')
+                    window.open(`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=12/${lat}/${lng}`, '_blank')
                   }}
                   className="rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-white hover:bg-white/5 transition-colors"
                 >
@@ -429,12 +414,6 @@ export default function Example() {
 
               {driveTab === 'drive' ? (
                 <div className="mt-4 rounded-3xl border border-white/10 bg-slate-950/90 p-6 text-center">
-                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-white">
-                    <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 3h14l3 5v10l-3 5H5L2 8l3-5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M7 7h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                  </div>
                   <p className="text-sm font-semibold text-white">Unggah materi</p>
                   <p className="mt-2 text-sm text-slate-400">Pilih file dari Google Drive Anda setelah masuk dengan akun Anda.</p>
                   <button
