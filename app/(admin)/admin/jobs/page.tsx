@@ -13,7 +13,8 @@ import {
   PhotoIcon,
   PlusIcon,
   ExclamationTriangleIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline'
 import {
   Sheet,
@@ -78,6 +79,9 @@ export default function JobsAdminPage() {
   }>({ isOpen: false, jobId: null })
   
   const [logoutDialog, setLogoutDialog] = useState(false)
+  
+  // High-res Image Lightbox Preview State
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
 
   useEffect(() => {
     const storedJobs = localStorage.getItem(JOBS_STORAGE_KEY)
@@ -108,9 +112,50 @@ export default function JobsAdminPage() {
   const [maxSalary, setMaxSalary] = useState('')
   const [description, setDescription] = useState('')
   const [image, setImage] = useState('')
+  const [driveTab, setDriveTab] = useState<'upload' | 'drive'>('drive')
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [driveLinkInput, setDriveLinkInput] = useState('')
   const [requirements, setRequirements] = useState('')
 
-  // Helper to format currency (updated to show 2 decimal places if needed)
+  // Intercept & clean Google Drive file links to adjust itself to raw viewable stream
+  const handleImageUrlChange = (val: string) => {
+    const fileIdMatch = val.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || val.match(/id=([a-zA-Z0-9_-]+)/)
+    if (fileIdMatch && fileIdMatch[1]) {
+      const directUrl = `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`
+      setImage(directUrl)
+      toast.info('Link Google Drive Disesuaikan', {
+        description: 'Tautan berbagi dikonversi menjadi URL stream gambar langsung.',
+      })
+    } else {
+      setImage(val)
+    }
+  }
+
+  // Handle local image uploads via FileReader for full base64 localStorage persistence
+  const handleLocalFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return
+    const file = event.target.files[0]
+    setUploadedFiles(Array.from(event.target.files))
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setImage(reader.result)
+          toast.success('Gambar Lokal Dimuat', {
+            description: 'Berkas gambar berhasil diproses dan dikaitkan ke lowongan kerja.',
+          })
+        }
+      }
+      reader.readAsDataURL(file)
+    } else {
+      toast.error('Format Tidak Didukung', {
+        description: 'Silakan pilih berkas gambar (PNG, JPG, WebP) untuk pratinjau otomatis.',
+      })
+    }
+  }
+
+  // Helper to format currency
   const formatRupiah = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { 
       style: 'currency', 
@@ -143,6 +188,8 @@ export default function JobsAdminPage() {
     setMaxSalary('')
     setDescription('')
     setImage('')
+    setDriveLinkInput('')
+    setUploadedFiles([])
     setRequirements('')
     setIsFormOpen(true)
   }
@@ -156,6 +203,8 @@ export default function JobsAdminPage() {
     setMaxSalary(job.maxSalary.toString())
     setDescription(job.description)
     setImage(job.image)
+    setDriveLinkInput(job.image.includes('drive.google.com') ? job.image : '')
+    setUploadedFiles([])
     setRequirements(job.requirements)
     setIsFormOpen(true)
   }
@@ -193,10 +242,10 @@ export default function JobsAdminPage() {
       title,
       division,
       company: division,
-      minSalary: parseFloat(minSalary), // Converted to float
-      maxSalary: parseFloat(maxSalary), // Converted to float
+      minSalary: parseFloat(minSalary),
+      maxSalary: parseFloat(maxSalary),
       description,
-      image,
+      image: image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600',
       requirements,
     }
 
@@ -207,8 +256,6 @@ export default function JobsAdminPage() {
     setJobs(nextJobs)
     saveJobs(nextJobs)
     setIsFormOpen(false)
-    setDriveTab('drive')
-    setUploadedFiles([])
 
     toast.success(editingId ? 'Lowongan Diperbarui!' : 'Lowongan Baru Ditambahkan!', {
       description: `Data untuk posisi ${title} telah berhasil disimpan.`,
@@ -340,29 +387,45 @@ export default function JobsAdminPage() {
                     {/* Jobs in Division */}
                     {divisionGroup.jobs.map((job) => (
                       <li key={job.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-white/[0.03] transition-colors group">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-white group-hover:text-indigo-300 transition-colors mb-2">
-                            {job.title}
-                          </h3>
-                          
-                          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-400">
-                            <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md">
-                              <BriefcaseIcon className="h-4 w-4 text-gray-500" />
-                              {job.division}
+                        
+                        {/* Left Side Content Wrap */}
+                        <div className="flex flex-1 items-start sm:items-center gap-4">
+                          {/* Clickable Image Thumbnail for Lighbox Expansion */}
+                          {job.image ? (
+                            <button 
+                              type="button"
+                              onClick={() => setPreviewImage(job.image)}
+                              className="h-14 w-14 rounded-xl border border-white/10 bg-cover bg-center shrink-0 shadow-inner bg-slate-800 flex items-center justify-center relative group-hover:border-indigo-500/50 transition-all hover:scale-105 active:scale-95 cursor-zoom-in"
+                              style={{ backgroundImage: `url(${job.image})` }}
+                              title="Sentuh untuk memperbesar gambar"
+                            >
+                              <div className="absolute inset-0 bg-black/10 rounded-xl hover:bg-black/0 transition-colors" />
+                            </button>
+                          ) : (
+                            <div className="h-14 w-14 rounded-xl border border-white/5 bg-white/5 flex items-center justify-center shrink-0 text-gray-500">
+                              <PhotoIcon className="h-6 w-6" />
                             </div>
-                            <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md">
-                              <BanknotesIcon className="h-4 w-4 text-emerald-500" />
-                              <span className="text-gray-300">{formatRupiah(job.minSalary)} - {formatRupiah(job.maxSalary)}</span>
-                            </div>
-                            {job.image && (
+                          )}
+
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-white group-hover:text-indigo-300 transition-colors mb-2">
+                              {job.title}
+                            </h3>
+                            
+                            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-400">
                               <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md">
-                                <PhotoIcon className="h-4 w-4 text-sky-500" />
-                                <span className="text-gray-300 truncate max-w-[150px]">Ada Gambar</span>
+                                <BriefcaseIcon className="h-4 w-4 text-gray-500" />
+                                {job.division}
                               </div>
-                            )}
+                              <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md">
+                                <BanknotesIcon className="h-4 w-4 text-emerald-500" />
+                                <span className="text-gray-300">{formatRupiah(job.minSalary)} - {formatRupiah(job.maxSalary)}</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
+                        {/* Control Actions Row */}
                         <div className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleEditClick(job)}
@@ -470,8 +533,43 @@ export default function JobsAdminPage() {
               </div>
             </div>
 
-<div className="rounded-3xl border border-white/10 bg-slate-900/70 p-4">
-              <div className="flex rounded-full border border-white/10 bg-slate-950/80 p-1">
+            <div className="space-y-2">
+              <label htmlFor="imageInput" className="block text-sm font-medium text-gray-300">
+                Gambaran Gawe (URL Gambar Terpilih)
+              </label>
+              <input
+                id="imageInput"
+                type="text"
+                value={image}
+                onChange={(e) => handleImageUrlChange(e.target.value)}
+                placeholder="Otomatis terisi dari tab unggahan di bawah atau isi URL manual"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors text-xs truncate"
+              />
+
+              {/* Form Active Image Live Status/Preview Container */}
+              {image && (
+                <div className="mt-2 rounded-xl border border-white/5 bg-slate-950/40 p-2 flex items-center gap-3 animate-in fade-in duration-300">
+                  <div 
+                    className="h-12 w-12 rounded-lg bg-cover bg-center shrink-0 border border-white/10 cursor-zoom-in"
+                    style={{ backgroundImage: `url(${image})` }}
+                    onClick={() => setPreviewImage(image)}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-indigo-400 truncate">Preview Gambar Terintegrasi</p>
+                    <button 
+                      type="button" 
+                      onClick={() => setImage('')} 
+                      className="text-[10px] text-red-400 hover:underline block mt-0.5"
+                    >
+                      Hapus Gambar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 ">
+              <div className="flex rounded-full border border-white/10 bg-[#0f1117] p-1 ">
                 <button
                   type="button"
                   onClick={() => setDriveTab('drive')}
@@ -489,41 +587,44 @@ export default function JobsAdminPage() {
               </div>
 
               {driveTab === 'drive' ? (
-                <div className="mt-4 rounded-3xl border border-white/10 bg-slate-950/90 p-6 text-center">
-                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-white">
-                    <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 3h14l3 5v10l-3 5H5L2 8l3-5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M7 7h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
+                <div className="mt-4 rounded-2xl border border-white/10 bg-[#0f1117] p-4 text-center">
+                  <p className="text-xs font-semibold text-white mb-2">Tempel Link Google Drive Anda</p>
+                  <input
+                    type="text"
+                    value={driveLinkInput}
+                    onChange={(e) => {
+                      setDriveLinkInput(e.target.value)
+                      handleImageUrlChange(e.target.value)
+                    }}
+                    placeholder="Tempel link share file drive..."
+                    className="w-full mb-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
+                  />
+                  <div className="border-t border-white/5 pt-3">
+                    <p className="text-[11px] text-slate-400 mb-2">Atau cari berkas langsung di manager penyimpanan cloud:</p>
+                    <button
+                      type="button"
+                      onClick={() => window.open('https://drive.google.com/drive/my-drive', '_blank')}
+                      className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-indigo-600 transition-all active:scale-[0.98]"
+                    >
+                      Buka Google Drive
+                    </button>
                   </div>
-                  <p className="text-sm font-semibold text-white">Unggah materi</p>
-                  <p className="mt-2 text-sm text-slate-400">Pilih file dari Google Drive Anda setelah masuk dengan akun Anda.</p>
-                  <button
-                    type="button"
-                    onClick={() => window.open('https://drive.google.com/drive/my-drive', '_blank')}
-                    className="mt-5 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 active:scale-95"
-                  >
-                    Sign in
-                  </button>
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">
-                  <label className="block text-sm text-slate-400">Unggah dokumen</label>
+                  <label className="block text-xs text-slate-400">Unggah berkas lokal gambar</label>
                   <input
                     type="file"
-                    multiple
-                    onChange={(event) => {
-                      if (!event.target.files) return
-                      setUploadedFiles(Array.from(event.target.files))
-                    }}
-                    className="w-full rounded-xl border border-white/10 bg-slate-900/50 px-4 py-3 text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
+                    accept="image/*"
+                    onChange={handleLocalFileChange}
+                    className="w-full rounded-xl border border-white/10 bg-slate-900/50 px-4 py-3 text-white text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
                   />
                   {uploadedFiles.length > 0 && (
-                    <div className="space-y-2 rounded-xl border border-white/10 bg-slate-950/80 p-3 max-h-32 overflow-y-auto">
+                    <div className="space-y-2 rounded-xl border border-white/10 bg-slate-950/80 p-3 max-h-32 overflow-y-auto custom-scrollbar">
                       {uploadedFiles.map((file) => (
                         <div key={file.name} className="flex items-center justify-between gap-2 rounded-lg bg-slate-900 px-3 py-2">
-                          <span className="truncate text-sm text-white">{file.name}</span>
-                          <span className="text-xs text-slate-400 shrink-0">{(file.size / 1024).toFixed(0)} KB</span>
+                          <span className="truncate text-xs text-white">{file.name}</span>
+                          <span className="text-[10px] text-slate-400 shrink-0">{(file.size / 1024).toFixed(0)} KB</span>
                         </div>
                       ))}
                     </div>
@@ -573,6 +674,32 @@ export default function JobsAdminPage() {
         </SheetContent>
       </Sheet>
 
+      {/* Large Lightbox Zoom Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity cursor-zoom-out" 
+            onClick={() => setPreviewImage(null)} 
+          />
+          
+          <div className="relative max-w-3xl max-h-[85vh] transform overflow-hidden rounded-2xl border border-white/10 bg-[#161b22] p-2 shadow-2xl transition-all animate-in zoom-in-95 fade-in duration-200">
+            <button
+              type="button"
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-4 right-4 z-10 rounded-full bg-black/60 p-2 text-gray-400 hover:text-white backdrop-blur-sm transition-colors"
+              title="Tutup Pratinjau"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+            <img 
+              src={previewImage} 
+              alt="Pratinjau Besar" 
+              className="max-w-full max-h-[80vh] rounded-xl object-contain mx-auto"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Custom Delete Confirmation Modal */}
       {deleteDialog.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
@@ -584,11 +711,9 @@ export default function JobsAdminPage() {
           <div className="relative transform overflow-hidden rounded-xl bg-[#161b22] border border-white/10 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg animate-in zoom-in-95 fade-in duration-200">
             <div className="px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
               <div className="sm:flex sm:items-start">
-                
                 <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-500/10 sm:mx-0 sm:h-10 sm:w-10">
                   <ExclamationTriangleIcon className="h-6 w-6 text-red-500" aria-hidden="true" />
                 </div>
-                
                 <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                   <h3 className="text-lg font-semibold leading-6 text-white">
                     Hapus Lowongan
@@ -633,11 +758,9 @@ export default function JobsAdminPage() {
           <div className="relative transform overflow-hidden rounded-xl bg-[#161b22] border border-white/10 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg animate-in zoom-in-95 fade-in duration-200">
             <div className="px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
               <div className="sm:flex sm:items-start">
-                
                 <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-500/10 sm:mx-0 sm:h-10 sm:w-10">
                   <ArrowRightOnRectangleIcon className="h-6 w-6 text-indigo-400" aria-hidden="true" />
                 </div>
-                
                 <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                   <h3 className="text-lg font-semibold leading-6 text-white">
                     Konfirmasi Keluar
