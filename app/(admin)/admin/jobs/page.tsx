@@ -207,6 +207,8 @@ export default function JobsAdminPage() {
     setJobs(nextJobs)
     saveJobs(nextJobs)
     setIsFormOpen(false)
+    setDriveTab('drive')
+    setUploadedFiles([])
 
     toast.success(editingId ? 'Lowongan Diperbarui!' : 'Lowongan Baru Ditambahkan!', {
       description: `Data untuk posisi ${title} telah berhasil disimpan.`,
@@ -468,19 +470,66 @@ export default function JobsAdminPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="image" className="block text-sm font-medium text-gray-300">
-                Gambaran Gawe (URL Gambar)
-              </label>
-              <input
-                id="image"
-                type="text"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                placeholder="/images/job-image.png"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
-              />
-              <p className="text-xs text-gray-500">Gambar yang relevan dengan posisi lowongan.</p>
+<div className="rounded-3xl border border-white/10 bg-slate-900/70 p-4">
+              <div className="flex rounded-full border border-white/10 bg-slate-950/80 p-1">
+                <button
+                  type="button"
+                  onClick={() => setDriveTab('drive')}
+                  className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${driveTab === 'drive' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Google Drive
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDriveTab('upload')}
+                  className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${driveTab === 'upload' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Upload File
+                </button>
+              </div>
+
+              {driveTab === 'drive' ? (
+                <div className="mt-4 rounded-3xl border border-white/10 bg-slate-950/90 p-6 text-center">
+                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-white">
+                    <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M5 3h14l3 5v10l-3 5H5L2 8l3-5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M7 7h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                  <p className="text-sm font-semibold text-white">Unggah materi</p>
+                  <p className="mt-2 text-sm text-slate-400">Pilih file dari Google Drive Anda setelah masuk dengan akun Anda.</p>
+                  <button
+                    type="button"
+                    onClick={() => window.open('https://drive.google.com/drive/my-drive', '_blank')}
+                    className="mt-5 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 active:scale-95"
+                  >
+                    Sign in
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  <label className="block text-sm text-slate-400">Unggah dokumen</label>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(event) => {
+                      if (!event.target.files) return
+                      setUploadedFiles(Array.from(event.target.files))
+                    }}
+                    className="w-full rounded-xl border border-white/10 bg-slate-900/50 px-4 py-3 text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
+                  />
+                  {uploadedFiles.length > 0 && (
+                    <div className="space-y-2 rounded-xl border border-white/10 bg-slate-950/80 p-3 max-h-32 overflow-y-auto">
+                      {uploadedFiles.map((file) => (
+                        <div key={file.name} className="flex items-center justify-between gap-2 rounded-lg bg-slate-900 px-3 py-2">
+                          <span className="truncate text-sm text-white">{file.name}</span>
+                          <span className="text-xs text-slate-400 shrink-0">{(file.size / 1024).toFixed(0)} KB</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

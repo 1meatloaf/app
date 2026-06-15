@@ -109,12 +109,7 @@ export default function Example() {
           </div>
 
           <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-            <Link
-              href="/login"
-              className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition duration-300 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-500/40 active:scale-95"
-            >
-              Masuk
-            </Link>
+
           </div>
           
           <div className="flex lg:hidden">
@@ -158,12 +153,7 @@ export default function Example() {
                   ))}
                 </div>
                 <div className="py-6">
-                  <Link
-                    href="./login"
-                    className="-mx-3 block rounded-md bg-indigo-500 px-3 py-2.5 text-center text-base font-semibold text-white shadow-md transition duration-300 hover:bg-indigo-600 active:scale-[0.98]"
-                  >
-                    Masuk
-                  </Link>
+
                 </div>
               </div>
             </div>

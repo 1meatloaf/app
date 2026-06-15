@@ -43,12 +43,7 @@ export default function LandingPage() {
           </div>
           
           <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-            <Link
-              href="./login"
-              className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition duration-300 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-500/40 active:scale-95"
-            >
-              Masuk
-            </Link>
+
           </div>
           
           <div className="flex lg:hidden">
@@ -91,12 +86,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <div className="py-6">
-                  <Link
-                    href="./login"
-                    className="-mx-3 block rounded-md bg-indigo-500 px-3 py-2.5 text-center text-base font-semibold text-white shadow-md transition duration-300 hover:bg-indigo-600 active:scale-[0.98]"
-                  >
-                    Masuk
-                  </Link>
+
                 </div>
               </div>
             </div>
@@ -120,15 +110,6 @@ export default function LandingPage() {
         </div>
         
         <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
-          {/* <div className="hidden sm:mb-8 sm:flex sm:justify-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-both">
-            <div className="relative rounded-full px-3 py-1 text-sm/6 text-gray-400 ring-1 ring-white/10 hover:ring-white/20 transition-all cursor-default">
-              lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.{' '}
-              <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300 ml-1 transition-colors">
-                <span className="absolute inset-0" aria-hidden="true" />
-                Read more <span aria-hidden="true">&rarr;</span>
-              </a>
-            </div>
-          </div> */}
           
           <div className="text-center">
             <h1 className="text-5xl font-semibold tracking-tight text-balance text-white sm:text-7xl animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both">
